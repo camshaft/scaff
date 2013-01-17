@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var scaff = require('commander')
+  , join = require('path').join
+  , create = require("../lib/create")
+  , generate = require("../lib/generate");
+
+scaff
+  .version(require(join(__dirname, "../package.json")).version)
+  .option('-d, --directory <path>', 'output directory', process.cwd())
+  .option('-t, --template <path>', 'template path');
+
+scaff
+  .command("new <name>")
+  .description("creates a new app")
+  .action(function(name) {
+    if (!scaff.template) {
+      console.error("Error: Template name must be defined");
+      process.exit(1);
+    };
+    var options = {
+      template: scaff.template
+    }
+    create(name, options);
+  });
+
+scaff
+  .command("generate <generator> [args]")
+  .description("creates a new app")
+  .action(function(generator) {
+    // generate(generator)
+    console.log(scaff.args);
+  });
+
+scaff.parse(process.argv);

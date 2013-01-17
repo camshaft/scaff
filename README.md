@@ -1,4 +1,4 @@
 scaff
 =====
 
-Agnostic scaffolding for node.js
+Agnostic scaffolding framework
