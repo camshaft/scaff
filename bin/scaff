@@ -6,28 +6,59 @@
 
 var scaff = require('commander')
   , join = require('path').join
-  , create = require("../lib/create")
-  , generate = require("../lib/generate");
+  , async = require('async')
+  , util = require("../lib/util");
 
 scaff
   .version(require(join(__dirname, "../package.json")).version)
   .option('-d, --directory <path>', 'output directory', process.cwd())
   .option('-t, --template <path>', 'template path');
 
+/**
+ * Creator
+ */
 scaff
   .command("new <name>")
   .description("creates a new app")
   .action(function(name) {
-    if (!scaff.template) {
-      console.error("Error: Template name must be defined");
-      process.exit(1);
-    };
-    var options = {
-      template: scaff.template
-    }
-    create(name, options);
+    var root = join(scaff.directory, name);
+    async.waterfall([
+      // Make sure we have a template defined
+      function validate(cb) {
+        cb(!scaff.template?"Error: Template name must be defined":null, scaff.template);
+      },
+      // Fetch the template
+      function fetch(template, cb) {
+        util.fetch(template, root, cb);
+      },
+      // Make the config
+      function config(cb) {
+        util.createConfig(scaff.template, root, cb);
+      },
+      // Pull in the template configuration
+      function open(cb) {
+        util.open(root, cb);
+      },
+      // Prompt user for questions
+      function prompt(template, cb) {
+        util.prompt(template, root, {project: name}, cb);
+      },
+      // Get all the files for the template
+      function files(responses, cb) {
+        util.files(root, function(err, contentPath, files, directories) {
+          cb(err, contentPath, files, directories, responses);
+        });
+      },
+      // Create the files
+      function create(contentPath, files, directories, responses, cb) {
+        util.create(root, contentPath, files, directories, responses, cb);
+      }
+    ], end);
   });
 
+/**
+ * Generator
+ */
 scaff
   .command("generate <generator> [args]")
   .description("creates a new app")
@@ -35,5 +66,21 @@ scaff
     // generate(generator)
     console.log(scaff.args);
   });
+
+/**
+ * Print out errors
+ */
+function end(err, result) {
+  if (err && typeof err != "number") {
+    console.error(err.toString());
+    process.exit(1);
+  }
+  if (err) {
+    process.exit(err);
+  }
+
+  if(result) console.log(result);
+  process.exit(0);
+};
 
 scaff.parse(process.argv);

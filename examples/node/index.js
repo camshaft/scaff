@@ -1,5 +1,6 @@
 exports.create = {
-  username: "Project author: "
+  username: "Project username: "
+, author: "Enter your name: "
 , email: "Enter your email: "
 , description: "Project description: "
 };
