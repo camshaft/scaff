@@ -1,10 +1,10 @@
 {
   "name": "scaff",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Agnostic scaffolding framework",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,9 @@
   "dependencies": {
     "commander": "~1.1.1",
     "async": "~0.1.22"
+  },
+  "devDependencies": {
+    "mocha": "~1.8.1",
+    "should": "~1.2.1"
   }
 }

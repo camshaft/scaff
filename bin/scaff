@@ -21,7 +21,15 @@ scaff
   .command("new <name>")
   .description("creates a new app")
   .action(function(name) {
+    // Sanitize the name
+    name = name
+            .replace("/", "-")
+            .replace("\\", "-")
+            .replace(" ", "-");
+
+    // Declare the project root
     var root = join(scaff.directory, name);
+
     async.waterfall([
       // Make sure we have a template defined
       function validate(cb) {
@@ -39,22 +47,32 @@ scaff
       function open(cb) {
         util.open(root, cb);
       },
-      // Prompt user for questions
-      function prompt(template, cb) {
-        util.prompt(template, root, {project: name}, cb);
-      },
-      // Get all the files for the template
-      function files(responses, cb) {
-        util.files(root, function(err, contentPath, files, directories) {
-          cb(err, contentPath, files, directories, responses);
-        });
+      function (template, cb) {
+        // While we're waiting for user input we can get a list of files in the template
+        async.parallel({
+          // Prompt user for questions
+          prompt: function(cb2) {
+            util.prompt(template, root, {project: name}, cb2);
+          },
+          // Get the files in the template
+          files: function(cb2) {
+            util.files(root, cb2);
+          }
+        }, cb);
       },
       // Create the files
-      function create(contentPath, files, directories, responses, cb) {
-        util.create(root, contentPath, files, directories, responses, cb);
+      function create(results, cb) {
+        var files = results.files;
+        util.create(root,
+                    files[0], // contentPath
+                    files[1], // files
+                    files[2], // directories
+                    results.prompt, // user responses
+                    cb);
       }
     ], end);
   });
+
 
 /**
  * Generator
@@ -75,11 +93,9 @@ function end(err, result) {
     console.error(err.toString());
     process.exit(1);
   }
-  if (err) {
-    process.exit(err);
-  }
-
-  if(result) console.log(result);
+  if (err) process.exit(err);
+  
+  if (result) console.log(result);
   process.exit(0);
 };
 
