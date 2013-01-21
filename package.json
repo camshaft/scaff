@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node_modules/.bin/mocha"
   },
+  "bin": {
+    "scaff": "bin/scaff"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/CamShaft/scaff.git"
